@@ -3,6 +3,15 @@ from socket import *
 import random
 import string
 
+#port information
+UDPClientName = 'localhost'
+UDPClientPort = 1200
+TCPServerName = 'localhost'
+TCPServerPort = 12000
+TCPClientName = 'localhost'
+TCPClientPort = 0
+
+
 #helper function to generate a random 3 letter code to send to the UDP server
 def generateMessage():
     message = ""
@@ -13,14 +22,25 @@ def generateMessage():
 #helper function to parse the information sent from the UDPServer
 #returns a string containing the number to send back to TCPClient
 def parseMessage(message, validMessages):
-    
-    return message
 
-#port information
-UDPClientName = 'localhost'
-UDPClientPort = 1200
-TCPServerName = 'localhost'
-TCPServerPort = 12000
+    #get reversed messsage, and ensures it is in validMessages
+    if reversed(message) in validMessages :
+
+        #if there is a vowel, return 0
+        for c in message:
+            if c in ['a','e','i','o','u']:
+                return 0
+            
+        #no vowels, and a valid input, sent the integer hex axii values back
+        output = ""
+        for c in message:
+            output += ord(c) #converts to ASCII value
+        return output
+
+    #if there isn't a valid input 
+    else:
+        return 0
+
 
 #helper funciton to send the UDP message
 def sendUDPMessage(sentMessages):
@@ -44,7 +64,7 @@ def sendUDPMessage(sentMessages):
 def recvTCPMessage():
     #initiating TCP connection
     serverSocket = socket(AF_INET, SOCK_STREAM)
-    serverSocket.bind(('', UDPClientPort))
+    serverSocket.bind(('', TCPClientPort))
     serverSocket.listen(1)
     print(f"Listening at {TCPServerName}, port {TCPServerPort}")
     print(f"Received ")
@@ -60,3 +80,4 @@ def recvTCPMessage():
 #Create the initial array of valid messages
 messagesSent = []
 sendUDPMessage(messagesSent)
+print(ord('B'))

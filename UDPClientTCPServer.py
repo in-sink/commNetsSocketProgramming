@@ -37,8 +37,8 @@ def sendUDPMessage(sentMessages):
     #console output
     print(f"Sent {message} to {UDPClientName} at port {UDPClientPort}")
     print("Valid Messages:")
-    for validMessage in validMessages:
-        print('\t' + validMessage)
+    for sentMessage in sentMessages:
+        print('\t' + sentMessage)
 
 #helper function to recveive the TCP message
 def recvTCPMessage():

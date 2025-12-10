@@ -10,40 +10,53 @@ def generateMessage():
         message = message + (random.choice(string.ascii_lowercase))
     return message
 
+#helper function to parse the information sent from the UDPServer
+#returns a string containing the number to send back to TCPClient
+def parseMessage(message, validMessages):
+    
+    return message
+
 #port information
-serverName = 'localhost'
-serverPort = 12000
+UDPClientName = 'localhost'
+UDPClientPort = 1200
+TCPServerName = 'localhost'
+TCPServerPort = 12000
 
 #helper funciton to send the UDP message
-def sendUDPMessage():
+def sendUDPMessage(sentMessages):
     clientSocket = socket(AF_INET,SOCK_DGRAM)
+
+    #generating the message, and appending to known messages array
     message = generateMessage()
-    clientSocket.sendto(message.encode(), (serverName,serverPort))
+    sentMessages.append(message)
+
+    #sending
+    clientSocket.sendto(message.encode(), (UDPClientName,UDPClientPort))
     clientSocket.close()
-    print(f"Sent {message} to {serverName} at port {serverPort}")
+
+    #console output
+    print(f"Sent {message} to {UDPClientName} at port {UDPClientPort}")
+    print("Valid Messages:")
+    for validMessage in validMessages:
+        print('\t' + validMessage)
 
 #helper function to recveive the TCP message
 def recvTCPMessage():
+    #initiating TCP connection
+    serverSocket = socket(AF_INET, SOCK_STREAM)
+    serverSocket.bind(('', UDPClientPort))
+    serverSocket.listen(1)
+    print(f"Listening at {TCPServerName}, port {TCPServerPort}")
     print(f"Received ")
 
-sendUDPMessage()
+    while True:
+        connectionSocket, addr = serverSocket.accept()
+        sentence = connectionSocket.recv(1024).decode()
+        connectionSocket.send(sentence.encode())
+        connectionSocket.close()
 
-#TCP Server code
-#boilerplate code from ch2 ppt
 
-from socket import *
-serverPort = 12000
 
-serverSocket = socket(AF_INET, SOCK_STREAM)
-serverSocket.bind(('', serverPort))
-serverSocket.listen(1)
-
-print('The server is ready to receive')
-
-while True:
-    connectionSocket, addr = serverSocket.accept()
-    sentence = connectionSocket.recv(1024).decode()
-    capitalizedSentence = sentence.upper()
-    connectionSocket.send(capitalizedSentence.encode())
-
-    connectionSocket.close()
+#Create the initial array of valid messages
+messagesSent = []
+sendUDPMessage(messagesSent)

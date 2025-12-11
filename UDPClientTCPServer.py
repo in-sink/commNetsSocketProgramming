@@ -40,6 +40,8 @@ def parseMessage(message, validMessages):
                output += "0" + str(num)
             else:
                output += str(num)
+            #add a comma after each number
+            output += ","
         return output
     
     #if there isn't a valid input 

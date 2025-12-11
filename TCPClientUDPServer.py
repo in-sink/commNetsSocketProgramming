@@ -1,75 +1,57 @@
 #boilerplate code taken from ch2 lecture slides
 from socket import *
 
-# TCP connection to server
-serverName = 'localhost'
-serverPort = 12000
-clientSocket = socket(AF_INET, SOCK_STREAM)
-clientSocket.connect((serverName, serverPort))
-sentence = input('Input lowercase sentence:')
-clientSocket.sent(sentence.encode())
-modifiedSentence = clientSocket.recv(1024)
-print('From Server:', modifiedSentence.decode())
+#helper function to add the TCPinputs back and add the values up
+def tallyInput(input):
+    #splits into each number seperately
+    inputs = input.split(',')
+    output = 0
+    for i in inputs:
+        output += i
 
-# Receive three numbers from TCP server
-numbers_data = clientSocket.recv(1024).decode()
-print('Received from TCP Server:', numbers_data)
+    return output
 
-# Parse and sum the three numbers
-try:
-    numbers = list(map(float, numbers_data.split()))
-    if len(numbers) != 3:
-        print('Error: Expected 3 numbers')
-    else:
-        total = sum(numbers)
-        print(f'Sum of {numbers}: {total}')
+#main function for running TCPClientUDPServer, does everything sequentially, no multithreading is required
+def main():
+    serverPort = 1200
+    serverSocket = socket(AF_INET,SOCK_DGRAM)
+    serverSocket.bind(("", serverPort))
+    print('UDP Server listening on port 1200')
+    print('The server is ready to receive')
+
+    while True:
+        message, clientAddress = serverSocket.recvfrom(2048)
+        message = message.decode()
+        print(f'Received from UDP Client: {message}')
         
-        # Only send UDP response if sum is not 0
-        if total != 0:
-            # Create UDP socket and send result to UDP server
-            udpSocket = socket(AF_INET, SOCK_DGRAM)
-            message = str(total)
-            udpSocket.sendto(message.encode(), (udpServerName, udpServerPort))
-            print(f'Sent sum {total} via UDP to server')
-            udpSocket.close()
-        else:
-            print('Sum is 0 - no UDP response sent')
-except ValueError:
-    print('Error: Could not parse numbers')
+        # Reverse the message
+        reversed_message = message[::-1]
+        print(f'Reversed: {reversed_message}')
+        
+        # Create TCP socket and send reversed message to TCP Server
+        tcpServerName = 'localhost'
+        tcpServerPort = 12000
+        
+        try:
+            tcpSocket = socket(AF_INET, SOCK_STREAM)
+            tcpSocket.connect((tcpServerName, tcpServerPort))
+            tcpSocket.send(reversed_message.encode())
+            print(f'Sent via TCP to TCP Server: {reversed_message}')
+            print(f"Waiting for TCP response")
 
-clientSocket.close()
+            #waits for a response back from the TCPServer
+            tcpResponse = tcpSocket.recv(1024)
 
+            #if the response isn't a 0, send the UDP response
+            if tcpResponse.decode() != "0":
+                serverSocket.sendto(tallyInput(tcpResponse.decode()).encode(), clientAddress)
+            else:
+                break
+            
+        except Exception as e:
+            print(f'Error connecting to TCP Server: {e}')
+    serverSocket.close()
+    tcpSocket.close()
 
-
-#boilerplate code taken from ch2 lecture slides
-#UDP Server - Receives 3-letter string from UDP Client, reverses it, sends via TCP to TCP Server
-
-from socket import *
-
-serverPort = 1200
-serverSocket = socket(AF_INET,SOCK_DGRAM)
-serverSocket.bind(("", serverPort))
-print('UDP Server listening on port 1200')
-print('The server is ready to receive')
-
-while True:
-    message, clientAddress = serverSocket.recvfrom(2048)
-    received_message = message.decode()
-    print(f'Received from UDP Client: {received_message}')
-    
-    # Reverse the message
-    reversed_message = received_message[::-1]
-    print(f'Reversed: {reversed_message}')
-    
-    # Create TCP socket and send reversed message to TCP Server
-    tcpServerName = 'localhost'
-    tcpServerPort = 12000
-    
-    try:
-        tcpSocket = socket(AF_INET, SOCK_STREAM)
-        tcpSocket.connect((tcpServerName, tcpServerPort))
-        tcpSocket.send(reversed_message.encode())
-        print(f'Sent via TCP to TCP Server: {reversed_message}')
-        tcpSocket.close()
-    except Exception as e:
-        print(f'Error connecting to TCP Server: {e}')
+if __name__ == "__main__":
+    main()

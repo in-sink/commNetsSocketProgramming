@@ -15,6 +15,10 @@ print('From Server:', modifiedSentence.decode())
 numbers_data = clientSocket.recv(1024).decode()
 print('Received from TCP Server:', numbers_data)
 
+#  UDP server details
+udpServerName = 'localhost'
+udpServerPort = 1200
+
 # Parse and sum the three numbers
 try:
     numbers = list(map(float, numbers_data.split()))

@@ -54,7 +54,7 @@ def sendUDPMessage(sentMessages):
     clientSocket = socket(AF_INET,SOCK_DGRAM)
     
     #one second timeout, so it resends the data if nothing is receieved back.
-    clientSocket.settimeout(1)
+    clientSocket.settimeout(3)
 
     #generating the message, and appending to known messages array
     message = generateMessage()

@@ -4,28 +4,25 @@ from socket import *
 #helper function to add the TCPinputs back and add the values up
 def tallyInput(input):
     #splits into each number seperately
-    inputs = input.split(',')
+    inputs = input.split()
     output = 0
     for i in inputs:
-        output += int(i)
+        #skips empty split for trailing comma
+        if i != '': 
+            output += int(i)
 
-    return output
+    return str(output)
 
 #main function for running TCPClientUDPServer, does everything sequentially, no multithreading is required
 def main():
     #port information
-    serverPort = 1200
+    UDP_SERVER_PORT = 1200
     tcpServerName = 'localhost'
-    tcpServerPort = 12001
-    print('UDP Server listening on port 1200')
+    tcpServerPort = 12000
+    print(f'UDP Server listening on port {UDP_SERVER_PORT}')
     print('The server is ready to receive')
     serverSocket = socket(AF_INET,SOCK_DGRAM)
-    serverSocket.bind(("", serverPort))    
-
-    #creating the tcp socket
-    tcpSocket = socket(AF_INET, SOCK_STREAM)
-    tcpSocket.connect((tcpServerName, tcpServerPort))
-    tcpSocket.settimeout(3)
+    serverSocket.bind(("", UDP_SERVER_PORT))    
 
     while True:
         message, clientAddress = serverSocket.recvfrom(2048)
@@ -38,18 +35,23 @@ def main():
 
         # Create TCP socket and send reversed message to TCP Server
         try:
-            tcpSocket.send(reversed_message.encode())
-            print(f'Sent via TCP to TCP Server: {reversed_message}')
-            print(f"Waiting for TCP response")
+            with socket(AF_INET, SOCK_STREAM) as tcpSocket:
+                tcpSocket.settimeout(3)
+                tcpSocket.connect((tcpServerName, tcpServerPort))
+                tcpSocket.send(reversed_message.encode())
+                print(f'Sent via TCP to TCP Server: {reversed_message}')
+                print(f"Waiting for TCP response")
 
-            #waits for a response back from the TCPServer
-            tcpResponse = tcpSocket.recv(1024)
+                tcpResponse = tcpSocket.recv(1024)
+                decoded = tcpResponse.decode()
+                print(f"Received {decoded} from TCP Server")
 
-            #if the response isn't a 0, send the UDP response
-            if tcpResponse.decode() != "0":
-                serverSocket.sendto(tallyInput(tcpResponse.decode()).encode(), clientAddress)
-            else:
-                break
+                if decoded != "0":
+                    response = tallyInput(decoded)
+                    print(f"Sending {response} to UDP client")
+                    serverSocket.sendto(response.encode(), clientAddress)
+                else:
+                    break
         except timeout:
             print(f"No response received for {message}")
             
@@ -57,7 +59,6 @@ def main():
             print(f'Error connecting to TCP Server: {e}')
 
     serverSocket.close()
-    tcpSocket.close()
 
 if __name__ == "__main__":
     main()

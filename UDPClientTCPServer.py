@@ -10,7 +10,7 @@ UDPClientPort = 1200
 TCPServerName = 'localhost'
 TCPServerPort = 12000
 TCPClientName = 'localhost'
-TCPClientPort = 12001
+TCPClientPort = 12000
 
 
 #helper function to generate a random 3 letter code to send to the UDP server
@@ -40,8 +40,9 @@ def parseMessage(message, validMessages):
                output += "0" + str(num)
             else:
                output += str(num)
-            #add a comma after each number
-            output += ","
+            #add a space after each number
+            output += " "
+        print (f"Sending \"{output}\"")
         return output
     
     #if there isn't a valid input 
@@ -104,8 +105,9 @@ def recvTCPMessage(messagesSent):
     while True:
         #receieves the message
         connectionSocket, addr = serverSocket.accept()
-        data, addr = connectionSocket.recv(1024)
+        data = connectionSocket.recv(1024)
         message = data.decode().upper()
+        print(f"Recieved {message} from TCP Client")
 
         #calls the helper function to figure out what to send to the TCP client
         output = parseMessage(message, messagesSent)
@@ -113,11 +115,14 @@ def recvTCPMessage(messagesSent):
         #sends back the decoded message such that a = 01, b = 02, c = 03 etc.
         connectionSocket.send(output.encode())
 
-        connectionSocket.close()
+        print(f"Sending {output} to TCP Client")
         
         if output != "0":
             # stop listening after sending a non-zero response
-            break
+            print("Nonzero response sent")
+            #break
+
+    connectionSocket.close()
 
 def main():
     messagesSent = []

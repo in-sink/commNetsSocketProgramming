@@ -1,7 +1,6 @@
 #Initial code taken from ch2 slides
 from socket import *
 from concurrent.futures import ThreadPoolExecutor, as_completed #for multithreading
-import time
 import random
 import string
 
